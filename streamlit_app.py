@@ -8,6 +8,7 @@ import json
 import asyncio
 import secrets
 import base64
+import warnings
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 from typing import Optional, List, Dict, Any, Tuple
@@ -24,6 +25,9 @@ import google.generativeai as genai
 # SQLModel imports
 from sqlmodel import Field, SQLModel, create_engine, Session, select, Column, JSON
 from sqlalchemy import func
+
+# Suppress SQLAlchemy warnings during Streamlit hot-reload
+warnings.filterwarnings('ignore', category=Warning, module='sqlalchemy')
 
 # Load environment variables
 load_dotenv()
@@ -147,8 +151,21 @@ class AssessmentAttempt(SQLModel, table=True):
 
 
 # Database setup
-DATABASE_URL = "sqlite:///ats.db"
-engine = create_engine(DATABASE_URL, echo=False)
+# Use PostgreSQL from environment variable, fallback to SQLite for local dev
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///ats.db")
+
+# PostgreSQL-specific settings
+if DATABASE_URL.startswith("postgresql"):
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,  # Verify connections before using
+        pool_size=10,
+        max_overflow=20
+    )
+else:
+    # SQLite settings
+    engine = create_engine(DATABASE_URL, echo=False)
 
 
 def init_db():

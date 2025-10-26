@@ -45,9 +45,11 @@ An AI-powered ATS that finds GitHub developers matching your job descriptions an
 
 ### 💾 Data Persistence
 
-- SQLite database with SQLModel ORM
+- **PostgreSQL** (production) or SQLite (local dev)
+- SQLModel ORM for database operations
 - Job postings, candidates, matches, invitations, assessments
 - Automatic job statistics tracking
+- Connection pooling for production scale
 
 ### 📥 Export Options
 
@@ -56,9 +58,12 @@ An AI-powered ATS that finds GitHub developers matching your job descriptions an
 
 ## Installation
 
+### Quick Start (SQLite - Local Development)
+
 1. Clone the repository:
 ```bash
-cd /path/to/your/workspace
+git clone https://github.com/amirshahdadian/TalentSonar.git
+cd TalentSonar
 ```
 
 2. Create and activate virtual environment:
@@ -78,7 +83,46 @@ cp .env.example .env
 # Edit .env and add your API keys:
 # - GEMINI_API_KEY (from Google AI Studio)
 # - GITHUB_TOKEN (Personal Access Token from GitHub)
+# - DATABASE_URL (optional - defaults to SQLite)
 ```
+
+5. Run the app:
+```bash
+streamlit run streamlit_app.py
+```
+
+### PostgreSQL Setup (Production)
+
+For production deployment with PostgreSQL:
+
+1. **Install PostgreSQL** (see [POSTGRES_SETUP.md](POSTGRES_SETUP.md) for detailed instructions)
+
+2. **Quick setup** (macOS/Linux):
+```bash
+./setup_postgres.sh
+```
+
+3. **Or manually create database**:
+```bash
+psql postgres
+CREATE DATABASE talentsonar;
+CREATE USER talentsonar_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE talentsonar TO talentsonar_user;
+```
+
+4. **Add to .env**:
+```bash
+DATABASE_URL=postgresql://talentsonar_user:your_password@localhost:5432/talentsonar
+```
+
+5. **Run the app** - it will automatically create all tables!
+
+**Hosted PostgreSQL Options:**
+- [Neon](https://neon.tech) - Free tier, serverless
+- [Supabase](https://supabase.com) - Free tier with extras
+- [Railway.app](https://railway.app) - Easy deployment
+- See [POSTGRES_SETUP.md](POSTGRES_SETUP.md) for more options
+
 
 ## Usage
 
