@@ -175,10 +175,11 @@ else:
 def init_db():
     """Initialize database tables."""
     try:
-        SQLModel.metadata.create_all(engine)
+        SQLModel.metadata.create_all(engine, checkfirst=True)
     except Exception as e:
-        st.error(f"Database initialization error: {e}")
-        # Try to continue with existing tables if they exist
+        # Tables may already exist, continue anyway
+        import logging
+        logging.warning(f"Database initialization warning: {e}")
         pass
 
 
@@ -743,8 +744,17 @@ async def run_discovery_for_job(job: JobPosting, parsed: dict, custom_weights: d
 
 def seed_assessment_templates():
     """Seed default assessment templates if they don't exist."""
+    try:
+        with Session(engine) as session:
+            # Check if template exists
+            soft_exists = session.exec(select(AssessmentTemplate).where(AssessmentTemplate.kind == "SOFT")).first()
+    except Exception as e:
+        # Table might not exist yet, skip seeding
+        import logging
+        logging.warning(f"Could not seed templates: {e}")
+        return
+    
     with Session(engine) as session:
-        # Check if template exists
         soft_exists = session.exec(select(AssessmentTemplate).where(AssessmentTemplate.kind == "SOFT")).first()
         
         if not soft_exists:
