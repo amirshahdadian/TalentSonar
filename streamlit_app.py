@@ -161,7 +161,11 @@ if DATABASE_URL.startswith("postgresql"):
         echo=False,
         pool_pre_ping=True,  # Verify connections before using
         pool_size=10,
-        max_overflow=20
+        max_overflow=20,
+        connect_args={
+            "connect_timeout": 10,
+            "options": "-c timezone=utc"
+        }
     )
 else:
     # SQLite settings
@@ -170,7 +174,12 @@ else:
 
 def init_db():
     """Initialize database tables."""
-    SQLModel.metadata.create_all(engine)
+    try:
+        SQLModel.metadata.create_all(engine)
+    except Exception as e:
+        st.error(f"Database initialization error: {e}")
+        # Try to continue with existing tables if they exist
+        pass
 
 
 # Initialize DB on import
